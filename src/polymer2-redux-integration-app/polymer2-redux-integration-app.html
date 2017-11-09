@@ -1,0 +1,32 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="polymer2-redux-integration-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class Polymer2ReduxIntegrationApp extends Polymer.Element {
+      static get is() { return 'polymer2-redux-integration-app'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'polymer2-redux-integration-app'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(Polymer2ReduxIntegrationApp.is, Polymer2ReduxIntegrationApp);
+  </script>
+</dom-module>

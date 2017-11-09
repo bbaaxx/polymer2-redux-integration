@@ -1,0 +1,6 @@
+{
+  "name": "polymer2-redux-integration",
+  "short_name": "polymer2-redux-integration",
+  "start_url": "/",
+  "display": "standalone"
+}
