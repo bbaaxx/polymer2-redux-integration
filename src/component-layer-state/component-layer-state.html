@@ -1,0 +1,40 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<dom-module id="component-layer-state">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[state]]</h2>
+  </template>
+
+  <script>
+
+    // TODO: Mover esto fuera de globales
+
+    ///////////////////////////////////////
+
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ComponentLayerState extends Polymer.Element {
+      static get is() { return 'component-layer-state'; }
+      static get properties() {
+        return {
+          state: {
+            type: Object,
+            value: () => ({})
+          }
+        };
+      }
+      connectedCallback() {
+        super.connectedCallback(); // How do you like coupling?
+        console.log('did');
+      }
+    }
+
+    window.customElements.define(ComponentLayerState.is, ComponentLayerState);
+  </script>
+</dom-module>

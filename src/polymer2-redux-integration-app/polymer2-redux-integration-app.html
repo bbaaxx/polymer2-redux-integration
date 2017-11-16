@@ -1,5 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-
+<link rel="import" href="../redux-counter/redux-counter.html">
 <dom-module id="polymer2-redux-integration-app">
   <template>
     <style>
@@ -8,22 +8,61 @@
       }
     </style>
     <h2>Hello [[prop1]]!</h2>
+    <redux-counter
+      store=[[store]]
+      dispatch=[[boundHandler]]
+      counter-id="topCounter"
+      ></redux-counter>
+    <redux-counter
+      store=[[store]]
+      dispatch=[[boundHandler]]
+      counter-id="bottomCounter"
+      ></redux-counter>
   </template>
 
   <script>
+
     /**
      * @customElement
      * @polymer
      */
     class Polymer2ReduxIntegrationApp extends Polymer.Element {
+      constructor() {
+        super();
+        this.boundHandler = this.reducer.bind(this);
+      }
       static get is() { return 'polymer2-redux-integration-app'; }
       static get properties() {
         return {
-          prop1: {
-            type: String,
-            value: 'polymer2-redux-integration-app'
+          store: {
+            type: Object,
+            value: () => ({ })
+          },
+          boundHandler: {
+            type: Object
           }
         };
+      }
+      reducer(action) {
+        let store = this.get('store');
+        store[action.counterId] = store[action.counterId] || 0;
+        switch (action.type) {
+          case 'INCREMENT':
+            store[action.counterId] += 1;
+            break;
+          case 'DECREMENT':
+            store[action.counterId] -= 1;
+            break;
+          case 'ADD_TEN':
+            store[action.counterId] += 10;
+            break;
+          case 'REMOVE_TEN':
+            store[action.counterId] -= 10;
+            break;
+          default:
+            break;
+        }
+        this.set('store', Object.assign({}, store));
       }
     }
 

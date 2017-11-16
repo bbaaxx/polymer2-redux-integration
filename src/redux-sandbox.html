@@ -1,0 +1,44 @@
+<script src="../node_modules/redux/dist/redux.js"></script>
+<style>
+  #console {
+    background-color: #ddd;
+    padding:
+  }
+</style>
+<script>
+(function() {
+  'use strict';
+
+  function clearElement(ele) {
+    ele.innerHTML = '';
+    return ele;
+  }
+  function h(tag, attrs = {}, childs = []) {
+    const ele = document.createElement(tag);
+    Object.keys(attrs).forEach(k => ele.setAttribute(k, attrs[k]));
+    if (Array.isArray(childs)) {
+      childs
+      .map(item => (typeof item === "string") ? document.createTextNode(item) : item)
+      .forEach(child => appendElement(ele, child));
+    }
+    return ele;
+  }
+  const typewritter = ele => (...stuff) => {
+    ele.innerHTML = stuff
+  };
+  const getDomLogger = (raw, ele) => (...stuff) => {
+    raw ? ele.innerHTML += `<p>${JSON.stringify(stuff)}</p>` : ele.innerHTML += `<p>${stuff}</p>`
+  };
+  const consoleEle = h("div", {
+    id: "console"
+  });
+  document.querySelector("body").appendChild(consoleEle);
+
+  const log = getDomLogger(true, consoleEle);
+  const tw = typewritter(consoleEle);
+
+  console.log('Hello Redux !', Redux);
+  tw('yolo')
+  log('yolo')
+}());
+</script>
