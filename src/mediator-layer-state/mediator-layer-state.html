@@ -1,5 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../cards-grid/cards-grid.html">
 <link rel="import" href="../nav-controls/nav-controls.html">
 <dom-module id="mediator-layer-state">
@@ -14,11 +16,26 @@
         margin: 20px auto;
         width: 50%;
       }
+      paper-header-panel {
+        float: left;
+        max-width: 800px;
+        min-height: 600px;
+        @apply --shadow-elevation-2dp;
+      }
+      .red [slot=header] { background-color: var(--paper-red-500); }
+      .red .content { background: linear-gradient(white, #ffcdd2); }
     </style>
-    <h2 class="comp-title">Mediator Layer State</h2>
-    <nav-controls state=[[state]] on-user-nav-event="_onUserNavEvent"></nav-controls>
-    <cards-grid state=[[state]]></cards-grid>
-    <p>[[state.attributionText]]</p>
+    <paper-header-panel seamed class="red">
+      <paper-toolbar slot="header" >
+        <h2 slot="top" class="comp-title">Mediator Layer State</h2>
+      </paper-toolbar>
+      <div class="content">
+        <nav-controls state=[[state]] on-user-nav-event="_onUserNavEvent"></nav-controls>
+        <cards-grid state=[[state]]></cards-grid>
+        <p>[[state.attributionText]]</p>
+      </div>
+    </paper-header-panel>
+
   </template>
 
   <script>
@@ -40,7 +57,7 @@
       // 0.- Inicializar el componente
       connectedCallback() {
         super.connectedCallback();
-        this._fetchData(null , 'limit=10');
+        this._fetchData(null , 'offset=100&limit=10');
       }
 
       // 1.- Obtener Data

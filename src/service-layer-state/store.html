@@ -34,6 +34,10 @@
       };
     }
 
+    getState() {
+      return this.__state;
+    }
+
     __notifySubscribers(newState) {
       if (super.__notifySubscribers) super.__notifySubscribers(); // preservar composicion
       this.__subscribers.forEach(fn => fn(newState));

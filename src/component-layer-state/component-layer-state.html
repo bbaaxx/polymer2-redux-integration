@@ -59,63 +59,78 @@
         margin: 20px auto;
         width: 50%;
       }
+      paper-header-panel {
+        float: left;
+        max-width: 800px;
+        min-height: 600px;
+        @apply --shadow-elevation-2dp;
+      }
+      .red [slot=header] { background-color: var(--paper-red-500); }
+      .red .content { background: linear-gradient(white, #ffcdd2); }
     </style>
 
-    <h2 class="comp-title">Component Layer State</h2>
+    <paper-header-panel seamed class="red">
+      <paper-toolbar slot="header" >
+        <h2 slot="top" class="comp-title">Component Layer State</h2>
+      </paper-toolbar>
+      <div class="content">
+        <div class="navigation-controls">
+          <paper-button
+            id="nav-button-previous"
+            raised
+            on-tap="_onTap"
+            class="black"
+            name$="[[state.navActions.prev.type]]"
+            >
+            [[state.navActions.prev.text]]
+          </paper-button>
+          <span>[[state.pagingData.currentPage]] / [[state.pagingData.totalPages]]</span>
+          <paper-button
+            id="nav-button-next"
+            raised
+            on-tap="_onTap"
+            class="black"
+            name$="[[state.navActions.next.type]]"
+            >
+            [[state.navActions.next.text]]
+          </paper-button>
+          // #spinner
+          <paper-spinner active=[[state.dataLoading]]>...</paper-spinner>
+        </div>
 
-    <div class="navigation-controls">
-      <paper-button
-        id="nav-button-previous"
-        raised
-        on-tap="_onTap"
-        class="black"
-        name$="[[state.navActions.prev.type]]"
-        >
-        [[state.navActions.prev.text]]
-      </paper-button>
-      <span>[[state.pagingData.currentPage]] / [[state.pagingData.totalPages]]</span>
-      <paper-button
-        id="nav-button-next"
-        raised
-        on-tap="_onTap"
-        class="black"
-        name$="[[state.navActions.next.type]]"
-        >
-        [[state.navActions.next.text]]
-      </paper-button>
-      <paper-spinner active=[[state.dataLoading]]>...</paper-spinner>
-    </div>
+        <div class="cards-container">
 
-    <div class="cards-container">
+          <template is="dom-repeat" items="[[state.data.results]]">
 
-      <template is="dom-repeat" items="[[state.data.results]]">
+            <div class="card-wrapper">
 
-        <div class="card-wrapper">
+              <paper-card image="[[item.thumbnail.path]].[[item.thumbnail.extension]]">
+                <div class="card-content">
+                  <div class="card-header">
+                    <h4>[[item.name]]</h4>
+                  </div>
+                </div>
 
-          <paper-card image="[[item.thumbnail.path]].[[item.thumbnail.extension]]">
-            <div class="card-content">
-              <div class="card-header">
-                <h4>[[item.name]]</h4>
-              </div>
-            </div>
+                <div class="card-actions">
+                  <paper-button id="card-button-details" raised class="red">
+                    details
+                  </paper-button>
+                  <paper-button id="card-button-pick" raised class="black">
+                    pick
+                  </paper-button>
+                </div>
+              </paper-card>
 
-            <div class="card-actions">
-              <paper-button id="card-button-details" raised class="red">
-                details
-              </paper-button>
-              <paper-button id="card-button-pick" raised class="black">
-                pick
-              </paper-button>
-            </div>
-          </paper-card>
+          </div>
 
-      </div>
+        </template>
 
-    </template>
+        </div>
 
-    </div>
+        <p>[[state.attributionText]]</p>
+    </paper-header-panel>
 
-    <p>[[state.attributionText]]</p>
+
   </template>
 
   <script>
@@ -137,7 +152,7 @@
       // 0.- Inicializar el componente
       connectedCallback() {
         super.connectedCallback();
-        this._fetchData('limit=10');
+        this._fetchData('offset=0&limit=10');
       }
 
       // 1.- Adquirir Data
@@ -150,9 +165,9 @@
         }));
 
         fetch(uri)
-          .then(resp => resp.json()) // repsuesta a JSON
-          .then(this._updateState.bind(this)) // escribimos el estado
-          .catch(e => console.log('Error en la solicitud:', e)); // Handle errors !
+          .then(resp => resp.json()) // convertir repsuesta a JSON
+          .then(this._updateState.bind(this)) // actualizar el estado
+          .catch(e => console.log('Error en la solicitud:', e)); // Manejo de errores !
       }
 
       // 2.- Actualizar el estado
@@ -170,17 +185,18 @@
             next: {text: 'Siguiente >', type: 'next-page'}
           },
           dataLoading: false
-        }));
+        })); // SRP?
 
       }
 
       // 3.- Realizar cambios al estado
       _onTap(e) {
         const { total, count, offset } = this.get('state.data');
-        const navTo = e.composedPath()[0].getAttribute('name');
-        let newOffset;
+        const action = e.composedPath()[0].getAttribute('name');
 
-        switch (navTo) {
+        // newOffset
+        let newOffset;
+        switch (action) {
           case 'next-page':
             newOffset = (offset + count) > total ? offset : (offset + count);
             break;
