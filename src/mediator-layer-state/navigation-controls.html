@@ -1,0 +1,57 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="navigation-controls">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div class="navigation-controls">
+      <paper-button
+        id="nav-button-previous"
+        raised
+        on-tap="_onTap"
+        class="black"
+        name$="[[state.navActions.prev.type]]"
+        >
+        [[state.navActions.prev.text]]
+      </paper-button>
+      <span>[[state.pagingData.currentPage]] / [[state.pagingData.totalPages]]</span>
+      <paper-button
+        id="nav-button-next"
+        raised
+        on-tap="_onTap"
+        class="black"
+        name$="[[state.navActions.next.type]]"
+        >
+        [[state.navActions.next.text]]
+      </paper-button>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class NavigationControls extends Polymer.Element {
+      static get is() { return 'navigation-controls'; }
+      static get properties() {
+        return {
+          state: {
+            type: Object,
+            value: (() => {})
+          }
+        };
+      }
+      _onTap(e) {
+        const detail = e.composedPath()[0].getAttribute('name');
+        this.dispatchEvent(new CustomEvent('user-nav-event', { detail }));
+      }
+    }
+
+    window.customElements.define(NavigationControls.is, NavigationControls);
+  </script>
+</dom-module>

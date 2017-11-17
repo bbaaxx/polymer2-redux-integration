@@ -1,0 +1,87 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="./cards-presenter.html">
+<link rel="import" href="./navigation-controls.html">
+<dom-module id="mediator-layer-state">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <navigation-controls state=[[state]] on-user-nav-event="_onUserNavEvent"></navigation-controls>
+    <cards-presenter state=[[state]]></cards-presenter>
+    <p>[[state.attributionText]]</p>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class MediatorLayerState extends Polymer.Element {
+      static get is() { return 'mediator-layer-state'; }
+      static get properties() {
+        return {
+          state: {
+            type: Object,
+            value: (() => {})
+          }
+        };
+      }
+
+      // 0.- Inicializar el componente
+      connectedCallback() {
+        super.connectedCallback();
+        this._fetchData(null , 'limit=10');
+      }
+
+      // 1.- Adquirir Data
+      _fetchData(search, query){
+        const baseUri = `//localhost:8080/api/characters${(query ? `?${query}` : '')}`;
+        const uri = search ? `${baseUri}/${search}` : baseUri;
+        fetch(uri)
+          .then(resp => resp.json()) // repsuesta a JSON
+          .then(this._updateState.bind(this)) // escribimos el estado
+          .catch(e => console.log('Error en la solicitud:', e)); // Handle errors !
+      }
+
+      // 2.- Actualizar el estado
+      _updateState(newState) {
+        const { total, count, offset } = newState.data;
+        this.set('state', Object.assign(newState, {
+          pagingData: {
+            totalPages: Math.ceil(total/count) - 1,
+            currentPage: Math.ceil(offset/count) + 1
+          },
+          // Estos probablemente deberian ser inicializadas en otro lado...
+          navActions: {
+            prev: {text: '< Anterior', type: 'prev-page'},
+            next: {text: 'Siguiente >', type: 'next-page'}
+          }
+        }));
+      }
+
+      // 3.- Realizar cambios al estado
+      _onUserNavEvent(e) {
+        const { total, count, offset } = this.get('state.data');
+        let newOffset;
+
+        switch (e.detail) {
+          case 'next-page':
+            newOffset = (offset + count) > total ? offset : (offset + count);
+            break;
+          case 'prev-page':
+            newOffset = (offset - count) < 0 ? offset : (offset - count);
+            break;
+          default:
+            newOffset = 0;
+        }
+
+        this._fetchData(null, `limit=10&offset=${newOffset}`);
+      }
+    }
+
+    window.customElements.define(MediatorLayerState.is, MediatorLayerState);
+  </script>
+</dom-module>
