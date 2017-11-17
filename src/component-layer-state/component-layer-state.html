@@ -1,61 +1,90 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
 <dom-module id="component-layer-state">
   <template>
     <style>
       :host {
         display: block;
       }
-      .fancy-button, .fancy-button:visited {
-      	background: #222 repeat-x;
-      	display: inline-block;
-      	padding: 5px 10px 6px;
-      	color: #fff;
-      	text-decoration: none;
-      	-moz-border-radius: 6px;
-      	-webkit-border-radius: 6px;
-      	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.6);
-      	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.6);
-      	text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
-      	border-bottom: 1px solid rgba(0,0,0,0.25);
-      	position: relative;
-      	cursor: pointer
+      .card-wrapper {
+        display: inline-block;
       }
-      /*.small.fancy-button, .small.fancy-button:visited {
-        font-size: 11px
+      paper-card {
+        margin: 10px;
+        max-width: 200px;
       }
-
-      .fancy-button, .fancy-button:visited, .medium.fancy-button, .medium.fancy-button:visited {
-        font-size: 13px;
-        font-weight: bold;
-        line-height: 1;
-        text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.25);
-      }
-
-      .large.fancy-button, .large.fancy-button:visited {
+      .card-header { @apply --paper-font-headline; }
+      .card-light { color: var(--paper-grey-600); }
+      paper-button {
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-weight: normal;
         font-size: 14px;
-        padding: 8px 14px 9px;
+        -webkit-font-smoothing: antialiased;
       }
-
-      .super.fancy-button, .super.fancy-button:visited {
-        font-size: 34px;
-        padding: 8px 14px 9px;
-      }*/
-      .red.fancy-button, .red.fancy-button:visited {
-        background-color: #e62727;
+      paper-button.red {
+        color: var(--paper-red-a200);
+        --paper-button-ink-color: var(--paper-red-a200);
+        --paper-button-raised-keyboard-focus: {
+            background-color: var(--paper-orange-a200) !important;
+            color: white !important;
+          };
       }
-      .red.fancy-button:hover {
-        background-color: #cf2525;
+      paper-button.red:hover {
+        background-color: var(--paper-red-100);
+      }
+      paper-button.black {
+        color: var(--paper-black-a200);
+        --paper-button-ink-color: var(--paper-black-a200);
+        --paper-button-raised-keyboard-focus: {
+            background-color: var(--paper-orange-a200) !important;
+            color: white !important;
+          };
+      }
+      paper-button.black:hover {
+        background-color: var(--paper-black-100);
+      }
+      .footer {
+        text-align: center;
+        margin: 20px auto;
+        width: 50%;
       }
     </style>
-    <template is="dom-repeat" items="{{state.data.results}}">
-        <div class="char-wrapper">
-          <button class="fancy-button small red" type="button" name="button">
-            [[item.name]]
-          </button>
-        </div>
+    <div class="cards-container">
+      <template is="dom-repeat" items="[[state.data.results]]">
+        <div class="card-wrapper">
+          <paper-card image="[[item.thumbnail.path]].[[item.thumbnail.extension]]">
+            <div class="card-content">
+              <div class="card-header">
+                <h4>[[item.name]]</h4>
+              </div>
+            </div>
+            <div class="card-actions">
+              <paper-button id="card-button-details" raised class="red">
+                details
+              </paper-button>
+              <paper-button id="card-button-pick" raised class="black">
+                pick
+              </paper-button>
+            </div>
+          </paper-card>
+      </div>
     </template>
-    <h4>[[state.attributionText]]</h4>
+    </div>
+    <div class="footer">
+      <paper-button id="nav-button-previous" raised on-tap="handleClick" class="black" name="prev-page">
+        < previous
+      </paper-button>
+      <span>Total Pages [[state.totalPages]]</span>
+      <paper-button id="nav-button-next" raised on-tap="handleClick" class="black" name="next-page">
+        next >
+      </paper-button>
+      <p>[[state.attributionText]]</p>
+    </div>
   </template>
 
   <script>
@@ -70,22 +99,50 @@
           state: {
             type: Object,
             value: (() => {})
+          },
+          nextOffset: {
+            type: Number,
+            value: 0
           }
         };
       }
+      _updateState(newState) {
+        this.set('state', Object.assign(newState, {
+          totalPages: Math.ceil(newState.data.total / newState.data.count)
+        }));
+      }
+      _fetchData(searchParams, queryParams){
+        const baseUri = '//localhost:8080/api/characters'
+        const uri = searchParams ? `${baseUri}/${searchParams}` : baseUri;
+        fetch(uri)
+          .then(resp => resp.json()) // repsuesta a JSON
+          .then(this._updateState.bind(this)) // escribimos el estado
+          .catch(e => console.log('Error en la solicitud:', e)); // Handle errors !
+      }
       connectedCallback() {
         super.connectedCallback(); // How do you like coupling?
-        const set = this.set.bind(this);
-        fetch('//localhost:8080/api/characters')
-          .then(resp => resp.json())
-          .then(res => this.set('state', res))
-          .catch(e => {
-            throw new Error(e);
-          });
+        this._fetchData();
       }
-      updateState(newState) {
-        console.log('updatingState!');
-        this.set('state', Object.assign({}, newState));
+      handleClick(e) {
+        const currOffset = this.get('nextOffset');
+        const navTo = e.composedPath()[0].getAttribute('name');
+        let nextOffset;
+        let newOffset;
+        switch (navTo) {
+          case 'next-page':
+            nextOffset = currOffset + this.get('state.data.count');
+            newOffset = nextOffset > this.get('state.data.total') ? currOffset : nextOffset;
+            this.set('nextOffset', nextOffset)
+            break;
+          case 'prev-page':
+            nextOffset = currOffset - this.get('state.data.count');
+            newOffset = nextOffset < 0 ? currOffset : nextOffset;
+            break;
+          default:
+            return;
+        }
+        this.set('nextOffset', newOffset);
+        this._fetchData(`?offset=${newOffset}`);
       }
     }
 

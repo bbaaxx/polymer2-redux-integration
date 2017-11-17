@@ -1,0 +1,53 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<dom-module id="service-layer-state">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <template is="dom-repeat" items="{{state.data.results}}">
+        <div class="char-wrapper">
+          <button class="fancy-button small red" type="button" name="button">
+            [[item.name]]
+          </button>
+        </div>
+    </template>
+    <h4>[[state.attributionText]]</h4>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ServiceLayerState extends Polymer.Element {
+      static get is() { return 'service-layer-state'; }
+      static get properties() {
+        return {
+          state: {
+            type: Object,
+            value: (() => {})
+          }
+        };
+      }
+      connectedCallback() {
+        super.connectedCallback(); // How do you like coupling?
+        const set = this.set.bind(this);
+        fetch('//localhost:8080/api/characters')
+          .then(resp => resp.json())
+          .then(res => this.set('state', res))
+          .catch(e => {
+            throw new Error(e);
+          });
+      }
+      updateState(newState) {
+        console.log('updatingState!');
+        this.set('state', Object.assign({}, newState));
+      }
+    }
+
+    window.customElements.define(ServiceLayerState.is, ServiceLayerState);
+  </script>
+</dom-module>
