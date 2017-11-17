@@ -1,0 +1,87 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../cards-grid/cards-grid.html">
+<link rel="import" href="../nav-controls/nav-controls.html">
+<link rel="import" href="./reducer.html">
+<link rel="import" href="./store.html">
+
+<dom-module id="service-layer-state">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      .comp-title { @apply --paper-font-headline; }
+      nav-controls {
+        text-align: center;
+        margin: 20px auto;
+        width: 50%;
+      }
+    </style>
+    <h2 class="comp-title">Service Layer State</h2>
+    <nav-controls state=[[state.navControls]] on-user-nav-event="_onUserNavEvent"></nav-controls>
+    <cards-grid state=[[state]]></cards-grid>
+    <p>[[state.attributionText]]</p>
+  </template>
+
+  <script>
+    const INITIAL_STATE = {
+      dataRequestParams: 'limit=10',
+      navControls: {
+        navActions: {
+          prev: {text: '< Anterior', type: 'nav-prev-page'},
+          next: {text: 'Siguiente >', type: 'nav-next-page'}
+        }
+      }
+    };
+
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ServiceLayerState extends StoreMixin(Polymer.Element) {
+      static get is() { return 'service-layer-state'; }
+      static get properties() {
+        return {
+          state: {
+            type: Object,
+            value: (() => {})
+          }
+        };
+      }
+
+      // El mediator es responsable (por ahora) de traer la data
+      static get observers() {
+        return [ '_fetchData(state.dataRequestParams)' ]
+      }
+
+      constructor() {
+        super();
+        this.initializeStore(INITIAL_STATE, reducer);
+      }
+
+      // 1.- Obtener Data
+      _fetchData(query, search){
+        if (!query) return;
+
+        const baseUri = `//localhost:8080/api/characters${(query ? `?${query}` : '')}`;
+        const uri = search ? `${baseUri}/${search}` : baseUri;
+
+        this.dispatch({ type: 'request-started'}); // notificamos el inicio de la operacion
+
+        fetch(uri)
+          .then(resp => resp.json()) // repsuesta a JSON
+          .then(this._onIncomingData.bind(this)) // escribimos el estado
+          .catch(e => console.log('Error en la solicitud:', e)); // Handle errors !
+      }
+
+      // 2.- Actualizar el estado
+      _onIncomingData(data) { this.dispatch({ type: 'request-completed', data }); }
+
+      // 3.- Responder a acciones de usuario
+      _onUserNavEvent(e) { this.dispatch({ type: e.detail }); }
+    }
+
+    window.customElements.define(ServiceLayerState.is, ServiceLayerState);
+  </script>
+</dom-module>

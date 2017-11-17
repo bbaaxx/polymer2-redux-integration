@@ -1,0 +1,39 @@
+<script>
+  const reducer = (state = {}, action) => {
+    let { total, count, offset } = {};
+    switch (action.type) {
+
+      /// responder a eventos de usuario
+      case 'nav-next-page':
+        return Object.assign({}, state, {
+          dataRequestParams:
+            `limit=10&offset=${(state.data.offset + state.data.count) > state.data.total ? state.data.offset : (state.data.offset + state.data.count)}`
+        });
+      case 'nav-prev-page':
+        return Object.assign({}, state, {
+          dataRequestParams: `limit=10&offset=${(state.data.offset - state.data.count) < 0 ? state.data.offset : (state.data.offset - state.data.count)}`
+        });
+
+      /// Manejar eventos async
+      case 'request-started':
+        return Object.assign({}, state, { dataLoading: true, dataRequestParams: null });
+      case 'request-completed':
+        return Object.assign({}, state, action.data, {
+          dataLoading: false,
+          navControls: {
+            ...state.navControls,
+            pagingData: {
+              totalPages: Math.ceil(action.data.data.total / action.data.data.count) - 1,
+              currentPage: Math.ceil(action.data.data.offset / action.data.data.count) + 1
+            },
+          },
+        });
+      case 'request-failed':
+        return Object.assign({}, state, { dataError: `Error: ${action.error.message}`});
+
+      /// Siempre devolver state por default
+      default:
+        return state;
+    }
+  };
+</script>

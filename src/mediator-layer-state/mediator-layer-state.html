@@ -1,16 +1,23 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="./cards-presenter.html">
-<link rel="import" href="./navigation-controls.html">
+<link rel="import" href="../cards-grid/cards-grid.html">
+<link rel="import" href="../nav-controls/nav-controls.html">
 <dom-module id="mediator-layer-state">
   <template>
     <style>
       :host {
         display: block;
       }
+      .comp-title { @apply --paper-font-headline; }
+      nav-controls {
+        text-align: center;
+        margin: 20px auto;
+        width: 50%;
+      }
     </style>
-    <navigation-controls state=[[state]] on-user-nav-event="_onUserNavEvent"></navigation-controls>
-    <cards-presenter state=[[state]]></cards-presenter>
+    <h2 class="comp-title">Mediator Layer State</h2>
+    <nav-controls state=[[state]] on-user-nav-event="_onUserNavEvent"></nav-controls>
+    <cards-grid state=[[state]]></cards-grid>
     <p>[[state.attributionText]]</p>
   </template>
 
@@ -36,10 +43,13 @@
         this._fetchData(null , 'limit=10');
       }
 
-      // 1.- Adquirir Data
+      // 1.- Obtener Data
       _fetchData(search, query){
         const baseUri = `//localhost:8080/api/characters${(query ? `?${query}` : '')}`;
         const uri = search ? `${baseUri}/${search}` : baseUri;
+        this.set('state', Object.assign({}, this.get('state'), {
+          dataLoading: true
+        }));
         fetch(uri)
           .then(resp => resp.json()) // repsuesta a JSON
           .then(this._updateState.bind(this)) // escribimos el estado
@@ -58,7 +68,8 @@
           navActions: {
             prev: {text: '< Anterior', type: 'prev-page'},
             next: {text: 'Siguiente >', type: 'next-page'}
-          }
+          },
+          dataLoading: false
         }));
       }
 

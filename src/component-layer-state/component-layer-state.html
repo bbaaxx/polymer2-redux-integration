@@ -5,6 +5,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
 <dom-module id="component-layer-state">
   <template>
     <style>
@@ -22,7 +24,7 @@
         margin: 10px;
         max-width: 200px;
       }
-      .card-header { @apply --paper-font-headline; }
+      .card-header, .comp-title { @apply --paper-font-headline; }
       .card-light { color: var(--paper-grey-600); }
       paper-button {
         font-family: 'Roboto', 'Noto', sans-serif;
@@ -52,12 +54,38 @@
       paper-button.black:hover {
         background-color: var(--paper-black-100);
       }
-      .navigation {
+      .navigation-controls {
         text-align: center;
         margin: 20px auto;
         width: 50%;
       }
     </style>
+
+    <h2 class="comp-title">Component Layer State</h2>
+
+    <div class="navigation-controls">
+      <paper-button
+        id="nav-button-previous"
+        raised
+        on-tap="_onTap"
+        class="black"
+        name$="[[state.navActions.prev.type]]"
+        >
+        [[state.navActions.prev.text]]
+      </paper-button>
+      <span>[[state.pagingData.currentPage]] / [[state.pagingData.totalPages]]</span>
+      <paper-button
+        id="nav-button-next"
+        raised
+        on-tap="_onTap"
+        class="black"
+        name$="[[state.navActions.next.type]]"
+        >
+        [[state.navActions.next.text]]
+      </paper-button>
+      <paper-spinner active=[[state.dataLoading]]>...</paper-spinner>
+    </div>
+
     <div class="cards-container">
 
       <template is="dom-repeat" items="[[state.data.results]]">
@@ -70,7 +98,7 @@
                 <h4>[[item.name]]</h4>
               </div>
             </div>
-            
+
             <div class="card-actions">
               <paper-button id="card-button-details" raised class="red">
                 details
@@ -86,16 +114,8 @@
     </template>
 
     </div>
-    <div class="navigation">
-      <paper-button id="nav-button-previous" raised on-tap="handleClick" class="black" name="prev-page">
-        < previous
-      </paper-button>
-      <span>Total Pages [[state.totalPages]]</span>
-      <paper-button id="nav-button-next" raised on-tap="handleClick" class="black" name="next-page">
-        next >
-      </paper-button>
-      <p>[[state.attributionText]]</p>
-    </div>
+
+    <p>[[state.attributionText]]</p>
   </template>
 
   <script>
@@ -110,50 +130,67 @@
           state: {
             type: Object,
             value: (() => {})
-          },
-          nextOffset: {
-            type: Number,
-            value: 0
           }
         };
       }
-      _updateState(newState) {
-        this.set('state', Object.assign(newState, {
-          totalPages: Math.ceil(newState.data.total / newState.data.count)
-        }));
+
+      // 0.- Inicializar el componente
+      connectedCallback() {
+        super.connectedCallback();
+        this._fetchData('limit=10');
       }
-      _fetchData(sp, qp){
-        const baseUri = `//localhost:8080/api/characters${(qp ? `?${qp}` : '')}`;
-        const uri = sp ? `${baseUri}/${sp}` : baseUri;
+
+      // 1.- Adquirir Data
+      _fetchData(query, search){
+        const baseUri = `//localhost:8080/api/characters${(query ? `?${query}` : '')}`;
+        const uri = search ? `${baseUri}/${search}` : baseUri;
+
+        this.set('state', Object.assign({}, this.get('state'), {
+          dataLoading: true
+        }));
+
         fetch(uri)
           .then(resp => resp.json()) // repsuesta a JSON
           .then(this._updateState.bind(this)) // escribimos el estado
           .catch(e => console.log('Error en la solicitud:', e)); // Handle errors !
       }
-      connectedCallback() {
-        super.connectedCallback(); // coupling ?
-        this._fetchData(null , 'limit=10');
+
+      // 2.- Actualizar el estado
+      _updateState(newState) {
+        const { total, count, offset } = newState.data;
+
+        this.set('state', Object.assign(newState, {
+          pagingData: {
+            totalPages: Math.ceil(total/count) - 1,
+            currentPage: Math.ceil(offset/count) + 1
+          },
+          // Estos probablemente deberian ser inicializadas en otro lado...
+          navActions: {
+            prev: {text: '< Anterior', type: 'prev-page'},
+            next: {text: 'Siguiente >', type: 'next-page'}
+          },
+          dataLoading: false
+        }));
+
       }
-      handleClick(e) {
-        const currOffset = this.get('nextOffset');
+
+      // 3.- Realizar cambios al estado
+      _onTap(e) {
+        const { total, count, offset } = this.get('state.data');
         const navTo = e.composedPath()[0].getAttribute('name');
-        let nextOffset;
         let newOffset;
+
         switch (navTo) {
           case 'next-page':
-            nextOffset = currOffset + this.get('state.data.count');
-            newOffset = nextOffset > this.get('state.data.total') ? currOffset : nextOffset;
-            this.set('nextOffset', nextOffset)
+            newOffset = (offset + count) > total ? offset : (offset + count);
             break;
           case 'prev-page':
-            nextOffset = currOffset - this.get('state.data.count');
-            newOffset = nextOffset < 0 ? currOffset : nextOffset;
+            newOffset = (offset - count) < 0 ? offset : (offset - count);
             break;
           default:
-            return;
+            newOffset = 0;
         }
-        this.set('nextOffset', newOffset);
-        this._fetchData(null, `limit=10&offset=${newOffset}`);
+        this._fetchData(`limit=10&offset=${newOffset}`);
       }
     }
 

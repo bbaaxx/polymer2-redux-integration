@@ -1,14 +1,15 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
-<dom-module id="navigation-controls">
+<dom-module id="nav-controls">
   <template>
     <style>
       :host {
         display: block;
       }
     </style>
-    <div class="navigation-controls">
+    <div class="nav-controls">
       <paper-button
         id="nav-button-previous"
         raised
@@ -28,6 +29,7 @@
         >
         [[state.navActions.next.text]]
       </paper-button>
+      <paper-spinner active=[[state.dataLoading]]>...</paper-spinner>
     </div>
   </template>
 
@@ -36,8 +38,8 @@
      * @customElement
      * @polymer
      */
-    class NavigationControls extends Polymer.Element {
-      static get is() { return 'navigation-controls'; }
+    class NavControls extends Polymer.Element {
+      static get is() { return 'nav-controls'; }
       static get properties() {
         return {
           state: {
@@ -52,6 +54,6 @@
       }
     }
 
-    window.customElements.define(NavigationControls.is, NavigationControls);
+    window.customElements.define(NavControls.is, NavControls);
   </script>
 </dom-module>

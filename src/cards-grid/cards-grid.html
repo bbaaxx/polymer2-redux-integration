@@ -5,7 +5,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
-<dom-module id="cards-presenter">
+<dom-module id="cards-grid">
   <template>
     <style>
       :host {
@@ -82,8 +82,8 @@
      * @customElement
      * @polymer
      */
-    class CardsPresenter extends Polymer.Element {
-      static get is() { return 'cards-presenter'; }
+    class CardsGrid extends Polymer.Element {
+      static get is() { return 'cards-grid'; }
       static get properties() {
         return {
           state: {
@@ -93,6 +93,6 @@
         };
       }
     }
-    window.customElements.define(CardsPresenter.is, CardsPresenter);
+    window.customElements.define(CardsGrid.is, CardsGrid);
   </script>
 </dom-module>

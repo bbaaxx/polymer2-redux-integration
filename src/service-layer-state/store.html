@@ -1,0 +1,44 @@
+<script>
+
+  // COMPROMISO: Mediadores implementan este mixin
+  let StoreMixin = (superclass) => class extends superclass {
+    constructor() {
+      super();
+      this.__subscribers = [];
+      this.__state = {};
+      this.__reducer;
+    }
+
+    initializeStore(initialState, reducer) {
+      this.__state = initialState;
+      this.__reducer = reducer;
+      this.__subscribers.push(newState => this.set('state', newState));
+      this.__notifySubscribers(initialState);
+    }
+
+    dispatch(action) {
+      if (super.dispatch) super.dispatch(); // preservar composicion
+      if (!this.__reducer) throw new Error('La store no ha sido inicializada')
+      this.__state = this.__reducer(this.__state, action);
+      this.__notifySubscribers(this.__state);
+    }
+
+    subscribe(fn) {
+      if (super.subscribe) super.subscribe(); // preservar composicion
+      this.__subscribers.push(fn);
+      return () => {
+        const index = this.__subscribers.indexOf(fn);
+        if (~index) {
+          this.__subscribers.splice(index, 1);
+        }
+      };
+    }
+
+    __notifySubscribers(newState) {
+      if (super.__notifySubscribers) super.__notifySubscribers(); // preservar composicion
+      this.__subscribers.forEach(fn => fn(newState));
+    }
+
+  };
+
+</script>
