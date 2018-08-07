@@ -1,7 +1,7 @@
 <script>
 
-  // COMPROMISO: Mediadores implementan este mixin
-  let StoreMixin = (superclass) => class extends superclass {
+  // COMPROMISO: Mediador princpial implementa este mixin
+  const StoreMixin = (superclass) => class extends superclass {
     constructor() {
       super();
       this.__subscribers = [];
@@ -10,6 +10,7 @@
     }
 
     initializeStore(initialState, reducer) {
+      if (super.initializeStore) super.initializeStore(initialState, reducer); // preservar composicion
       this.__state = initialState;
       this.__reducer = reducer;
       this.__subscribers.push(newState => this.set('state', newState));
@@ -17,14 +18,16 @@
     }
 
     dispatch(action) {
-      if (super.dispatch) super.dispatch(); // preservar composicion
+      if (super.dispatch) super.dispatch(action); // preservar composicion
       if (!this.__reducer) throw new Error('La store no ha sido inicializada')
       this.__state = this.__reducer(this.__state, action);
       this.__notifySubscribers(this.__state);
     }
 
     subscribe(fn) {
-      if (super.subscribe) super.subscribe(); // preservar composicion
+      if (super.subscribe) super.subscribe(fn); // preservar composicion
+      if (!(fn && {}.toString.call(fn) === '[object Function]'))
+        throw new Error('Debes proveer una funcion como parametro para subscribe');
       this.__subscribers.push(fn);
       return () => {
         const index = this.__subscribers.indexOf(fn);
@@ -35,11 +38,12 @@
     }
 
     getState() {
+      if (super.getState) super.getState(); // preservar composicion
       return this.__state;
     }
 
     __notifySubscribers(newState) {
-      if (super.__notifySubscribers) super.__notifySubscribers(); // preservar composicion
+      if (super.__notifySubscribers) super.__notifySubscribers(newState); // preservar composicion
       this.__subscribers.forEach(fn => fn(newState));
     }
 

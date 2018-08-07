@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
 <dom-module id="redux-counter">
   <template>
     <style>
@@ -14,17 +15,13 @@
   </template>
 
   <script>
-
-    // TODO: Mover esto fuera de globales
-
-    ///////////////////////////////////////
-
     /**
      * @customElement
      * @polymer
      */
     class ReduxCounter extends Polymer.Element {
       static get is() { return 'redux-counter'; }
+
       static get properties() {
         return {
           state: {
@@ -38,11 +35,16 @@
           counter: {
             type: Number,
             computed: 'extractCounter(state)'
+          },
+          dispatch: {
+            type: Function
           }
         };
       }
+
       clickHandler(e) {
         const actionName = e.target.name;
+        console.log('CLickety:', this.dispatch)
         this.dispatch(this.createCounterAction(actionName));
       }
       extractCounter(state) {
@@ -50,15 +52,15 @@
       }
       createCounterAction(type) {
         const counterId = this.get('counterId');
-        return type === 'add' ?
-            { type: 'INCREMENT', counterId } :
-          type === 'substract' ?
-            { type : 'DECREMENT', counterId } :
-          type === 'add-ten' ?
-            { type: 'ADD_TEN', counterId} :
-          type === 'remove-ten' ?
-            { type: 'REMOVE_TEN', counterId} :
-            { type: 'UNHANDLED' };
+        return type === 'add'
+            ? { type: 'INCREMENT', counterId }
+          : type === 'substract'
+            ? { type : 'DECREMENT', counterId }
+          : type === 'add-ten'
+            ? { type: 'ADD_TEN', counterId}
+          : type === 'remove-ten'
+            ? { type: 'REMOVE_TEN', counterId}
+          : { type: 'UNHANDLED' };
       }
     }
 

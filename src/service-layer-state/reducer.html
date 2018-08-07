@@ -11,7 +11,8 @@
         });
       case 'nav-prev-page':
         return Object.assign({}, state, {
-          dataRequestParams: `limit=10&offset=${(state.data.offset - state.data.count) < 0 ? state.data.offset : (state.data.offset - state.data.count)}`
+          dataRequestParams:
+            `limit=10&offset=${(state.data.offset - state.data.count) < 0 ? state.data.offset : (state.data.offset - state.data.count)}`
         });
 
       /// Manejar eventos async
